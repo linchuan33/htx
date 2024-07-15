@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>企业微信登录并跳转至特航商旅</title>
+    <script>
+        // 引入企业微信JS-SDK
+        document.write('<script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js">\x3C/script>');
+
+        // 模拟获取员工工号，实际中应通过企业微信API获取
+        function getEmployeeClientCode() {
+            // 这里应调用企业微信API获取员工信息，返回员工的clientCode
+            // 例如：return wx.getUserInfo().corpId;
+            return '员工工号'; // 请替换为实际获取的工号
+        }
+
+        // 检查JS接口支持情况
+        function checkJSApi() {
+            wx.checkJsApi({
+                jsApiList: ['chooseImage'], // 这里可以根据需要检测不同的接口
+                success: function(res) {
+                    console.log('JS接口支持情况：', res);
+                    if (res.checkResult['chooseImage']) {
+                        // 如果接口支持，继续执行登录和跳转逻辑
+                        redirectToTeYiXing();
+                    } else {
+                        alert('当前环境不支持所需的JS接口，请在企业微信中打开此页面。');
+                    }
+                },
+                fail: function(err) {
+                    console.error('JS接口检测失败：', err);
+                    alert('JS接口检测失败，请重试或联系管理员。');
+                }
+            });
+        }
+
+        // 执行登录并跳转至特航商旅
+        function redirectToTeYiXing() {
+            const employeeClientCode = getEmployeeClientCode();
+            const approvalNo = ''; // 出差申请单号，根据需要设置
+
+            // 准备请求数据
+            const requestData = {
+                clientCode: employeeClientCode,
+                approvalNo: approvalNo
+            };
+
+            // 发送请求获取token
+            fetch('https://xxx.xxx.com/corp/v1/login/getEmployeeLoginToken', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.code === 0) {
+                    // 获取token成功
+                    const token = data.data;
+                    const teYiXingUrl = `https://demo-hcp.teyixing.com/#/tabs/home?initPage=FlightSearcht&token=${token}`;
+                    window.location.href = teYiXingUrl; // 跳转到特航商旅
+                } else {
+                    // 获取token失败
+                    alert('获取登录token失败：' + data.message);
+                }
+            })
+            .catch(error => {
+                // 网络或其他错误处理
+                alert('请求失败：' + error);
+            });
+        }
+
+        // 页面加载完成后执行JS接口检查
+        window.onload = checkJSApi;
+    </script>
+</head>
+<body>
+    <h1>正在处理登录和跳转...</h1>
+</body>
+</html>
